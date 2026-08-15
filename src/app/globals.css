@@ -1,26 +1,682 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@custom-variant dark (&:is(.dark *));
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-plex-arabic);
+  --font-mono: var(--font-plex-mono);
+  --font-heading: var(--font-plex-arabic);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+
+  /* Noir case-file scale */
+  --color-surface: var(--bg-surface);
+  --color-elevated: var(--bg-elevated);
+  --color-sunken: var(--bg-sunken);
+  --color-hairline: var(--border-subtle);
+  --color-gold: var(--gold);
+  --color-dim: var(--text-muted);
+  --color-diff-easy: var(--diff-easy);
+  --color-diff-medium: var(--diff-medium);
+  --color-diff-hard: var(--diff-hard);
+  --color-info: var(--info);
+  --color-tone-blue: var(--tone-blue);
+  --color-tone-purple: var(--tone-purple);
+  --color-tone-cyan: var(--tone-cyan);
+  --color-tone-orange: var(--tone-orange);
+  --color-tone-pink: var(--tone-pink);
+
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+  /* Cards sit at a flatter 18px than the 12px button radius. */
+  --radius-card: 1.125rem;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/*
+ * اخترق runs dark-only. The palette lives on `:root` and is mirrored on
+ * `.dark` so shadcn's `dark:` variants resolve against the same values.
+ *
+ * Identity: one background colour for the entire site, and solid objects sat
+ * on top of it. Contrast comes from the fill step between the page and a card
+ * — never from a translucent tint, a blur, or a gradient. Nothing on this site
+ * is see-through, and nothing shares the page's own background colour.
+ */
+:root,
+.dark {
+  /*
+   * Four solid steps. `base` is the page — the *only* page colour, used from
+   * the nav to the footer with no bands or alternating sections. `surface` is
+   * every card, `elevated` is a panel nested inside a card or a chip that has
+   * to sit above one, `sunken` is a terminal well cut into a panel.
+   *
+   * The step from base to surface is deliberately wide: a card has to be
+   * obviously a different colour from the page, or it reads as a pane of glass
+   * rather than an object.
+   */
+  --bg-sunken: #05080d;
+  --bg-base: #080c12;
+  --bg-surface: #1a2330;
+  --bg-elevated: #26313f;
+
+  /*
+   * Elevation comes from lines, so the lines have to actually read. `subtle`
+   * divides content inside a panel; `strong` outlines the panel itself — it is
+   * a visible edge, not a suggestion.
+   */
+  --border-subtle: #2d3846;
+  --border-strong: #48586c;
+
+  /*
+   * The drop under a card. Pure black and tight. The inset white hairline that
+   * used to run along the top edge is gone — a lit rim is the tell of a glassy
+   * panel, and the card's own border already draws the edge.
+   */
+  --shadow-card: 0 10px 24px -14px rgba(0, 0, 0, 0.9);
+
+  --text-primary: #e9eef3;
+  --text-secondary: #a3b0be;
+  --text-muted: #7b8a9b;
+
+  /*
+   * The one accent: a calm terminal green, not neon. It carries the primary
+   * button, the featured card and the flag line, and nothing else on the site
+   * competes with it.
+   *
+   * `fill` and `line` are the chip treatment, and both are **opaque** — mixed
+   * down to a solid dark green rather than left as a 12% wash. A translucent
+   * tint over a dark page is the glass effect, and this site does not use it.
+   */
+  --accent: #3fb950;
+  --accent-hover: #56d364;
+  --accent-fill: #10281a;
+  --accent-border: #2c6b39;
+  --accent-foreground: #06120a;
+  /* Body copy sat on top of an accent-filled card. Solid, not `/80`. */
+  --accent-foreground-soft: #123d1e;
+
+  /* Amber survives only as a terminal warning tone and a window button. It is
+   * no longer a second brand colour — nothing structural wears it. */
+  --gold: #d4a24c;
+  --gold-fill: #2a2113;
+  --gold-border: #6b5327;
+
+  /*
+   * Paper. This is the **secondary** button's colour — a warm off-white on
+   * near-black, the highest contrast the page can produce (15.7:1). The
+   * secondary action gets a real fill like everything else here; an outlined
+   * button sitting at the page's own colour is the one shape this design does
+   * not use. Green stays the primary, paper answers it.
+   */
+  --paper: #eae7de;
+  --paper-hover: #f6f4ee;
+  --paper-foreground: #0a0e13;
+
+  /* Difficulty moved off green so it can't be confused with the accent. */
+  --diff-easy: #7c8b9a;
+  --diff-medium: #d4a24c;
+  --diff-hard: #e5484d;
+  --info: #5865f2;
+
+  /*
+   * Category tones, all at roughly the same grade as the accent green
+   * (~50% saturation, ~50–60% lightness) so nothing shouts on the near-black
+   * base — no neon members in this family.
+   *
+   * Scope is deliberately narrow: these tint SMALL items that name a real
+   * category — a skill tag like ويب or تصعيد صلاحيات, a single icon. They do
+   * not go on structural elements. Colouring card spines, pricing tiers or
+   * step cards adds colour without adding meaning, and that is what turns a
+   * palette into a rainbow. Structure stays on the base scale; green stays
+   * the action colour, gold paid content, red danger.
+   */
+  --tone-blue: #58a6ff;
+  --tone-purple: #a371f7;
+  --tone-cyan: #3fbfc9;
+  --tone-orange: #db6d28;
+  --tone-pink: #db61a2;
+
+  /* shadcn bridge — every shadcn role resolves to a token above. */
+  --background: var(--bg-base);
+  --foreground: var(--text-primary);
+  --card: var(--bg-surface);
+  --card-foreground: var(--text-primary);
+  --popover: var(--bg-elevated);
+  --popover-foreground: var(--text-primary);
+  --primary: var(--accent);
+  --primary-foreground: var(--accent-foreground);
+  --secondary: var(--bg-elevated);
+  --secondary-foreground: var(--text-primary);
+  --muted: var(--bg-elevated);
+  --muted-foreground: var(--text-secondary);
+  --destructive: var(--diff-hard);
+  --border: var(--border-subtle);
+  --input: var(--border-subtle);
+  --ring: var(--accent);
+  --radius: 0.75rem;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    @apply font-sans;
+    color-scheme: dark;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    background: var(--accent-border);
+    color: var(--text-primary);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer utilities {
+  /*
+   * Latin micro-labels. The whole personality of the type system is the
+   * contrast between heavy Arabic and tiny tracked-out Latin mono — so these
+   * stay small, uppercase and wide. `direction: ltr` keeps them readable
+   * inside the RTL page; `isolate` stops punctuation reordering at the edges.
+   */
+  .mono-label {
+    font-family: var(--font-mono);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.22em;
+    color: var(--text-muted);
+    direction: ltr;
+    unicode-bidi: isolate;
+  }
+
+  /* Shell commands, file paths and IDs are left-to-right even on an RTL page. */
+  .force-ltr {
+    direction: ltr;
+    text-align: left;
+    unicode-bidi: isolate;
+  }
+
+  /*
+   * A Latin fragment sitting inside an Arabic sentence. Isolation is what stops
+   * the bidirectional algorithm from resolving the fragment together with the
+   * surrounding text — without it the sentence's full stop, brackets and
+   * slashes get pulled across the boundary and land at the wrong end.
+   */
+  .bidi-isolate {
+    unicode-bidi: isolate;
+  }
+
+  /*
+   * Mixed-script blocks where each line is its own sentence: terminal output,
+   * file contents, man pages. `plaintext` gives every line the direction of its
+   * own first strong character — an English line reads left-to-right, an Arabic
+   * one right-to-left — while the block stays left-aligned like a real console
+   * column. This is the only correct treatment for a dump we don't control:
+   * forcing the whole thing LTR mangles every Arabic line in it.
+   */
+  .bidi-plaintext {
+    direction: ltr;
+    text-align: left;
+    unicode-bidi: plaintext;
+  }
+
+  /*
+   * Authored pages rendered inside the fake Browser app. The markup is trusted
+   * content from a lab manifest (never player input), so it's styled here
+   * rather than with utility classes it can't carry. Kept deliberately plain —
+   * these read as documents on a screen, not as part of the product chrome.
+   */
+  .lab-page {
+    color: var(--text-secondary);
+    font-size: 14px;
+    line-height: 2;
+  }
+  .lab-page h1 {
+    color: var(--text-primary);
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1.4;
+    margin-block-end: 0.75rem;
+  }
+  .lab-page h2 {
+    color: var(--text-primary);
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin-block: 1rem 0.5rem;
+  }
+  .lab-page p {
+    margin-block-end: 0.75rem;
+  }
+  .lab-page strong {
+    color: var(--text-primary);
+    font-weight: 600;
+  }
+  .lab-page a {
+    color: var(--accent);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    cursor: pointer;
+  }
+  .lab-page a:hover {
+    color: var(--accent-hover);
+  }
+  .lab-page ul {
+    margin-block: 0.5rem 0.75rem;
+    padding-inline-start: 1.25rem;
+    list-style: disc;
+  }
+  .lab-page li {
+    margin-block-end: 0.35rem;
+  }
+  /*
+   * Authored pages mix Arabic prose with Latin names, handles and URLs. Each
+   * block resolves its own direction from its first strong character, so a
+   * manifest never has to tag direction by hand — or hide LRM marks in the
+   * JSON to force it.
+   */
+  .lab-page h1,
+  .lab-page h2,
+  .lab-page p,
+  .lab-page li {
+    unicode-bidi: plaintext;
+  }
+  .lab-page code,
+  .lab-page pre {
+    font-family: var(--font-mono);
+    direction: ltr;
+    unicode-bidi: isolate;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-strong);
+    border-radius: 6px;
+  }
+  .lab-page code {
+    padding: 0.1rem 0.35rem;
+    font-size: 0.85em;
+  }
+  .lab-page pre {
+    display: block;
+    padding: 0.75rem;
+    overflow-x: auto;
+    margin-block: 0.75rem;
+  }
+  .lab-page .muted {
+    color: var(--text-muted);
+    font-size: 12.5px;
+  }
+
+  /*
+   * The one card behaviour on the site: the border comes up to the accent and
+   * the card lifts 2px. No spine, no scale, no tone-per-card — a stripe down
+   * the edge of every panel was decoration the content never asked for.
+   *
+   * The fill is opaque and a clear step above the page. A card must never be
+   * a tint of the background it sits on: that is the glass effect, and at this
+   * density it makes the whole page read as one flat sheet.
+   */
+  .card-noir {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-strong);
+    box-shadow: var(--shadow-card);
+    transition:
+      border-color 240ms ease,
+      box-shadow 240ms ease,
+      transform 240ms ease;
+  }
+
+  .card-noir:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: 0 18px 32px -16px rgba(0, 0, 0, 0.95);
+  }
+
+  /*
+   * The inverted card: solid accent, dark text. Exactly one per section may
+   * wear it — it is how a section says "this is the one", and a second one
+   * would cancel the first. Everything inside inherits the dark foreground,
+   * so no child needs to restate its colour.
+   */
+  .card-accent {
+    background: var(--accent);
+    border: 1px solid var(--accent);
+    color: var(--accent-foreground);
+    /* A black drop, like every other panel. A coloured glow under a card this
+       loud reads as a web template, and the fill alone already wins. */
+    box-shadow: 0 18px 34px -18px rgba(0, 0, 0, 0.95);
+    transition:
+      background-color 240ms ease,
+      transform 240ms ease;
+  }
+
+  .card-accent:hover {
+    background: var(--accent-hover);
+    transform: translateY(-2px);
+  }
+
+  /*
+   * A panel that isn't a card: the guarantees strip, the board chrome, the
+   * transcript column. Same solid fill and visible edge, no hover behaviour —
+   * nothing here is pickable, so nothing here should move.
+   */
+  .panel-noir {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-strong);
+    box-shadow: var(--shadow-card);
+  }
+
+  /*
+   * A terminal or evidence well cut into a panel. Darker than the page itself,
+   * which is what makes it read as a recess rather than another card. No
+   * border — the panel it sits in already supplies the frame.
+   */
+  .well-noir {
+    background: var(--bg-sunken);
+    box-shadow: inset 0 2px 18px rgba(0, 0, 0, 0.7);
+  }
+
+  /*
+   * Icon plate. A bare glyph floating in a card carries no weight at this
+   * density, so every set icon gets a solid tinted tile with its own edge —
+   * the tone still names the category, it just has something to sit on.
+   */
+  .icon-tile {
+    display: grid;
+    place-items: center;
+    color: var(--tile-tone, var(--accent));
+    /* Both mixes land on a solid colour — the border used to be mixed with
+       `transparent`, which made the plate's edge a 45% wash of whatever was
+       behind it. Every edge on this site is opaque. */
+    background: color-mix(
+      in srgb,
+      var(--tile-tone, var(--accent)) 15%,
+      var(--bg-elevated)
+    );
+    border: 1px solid
+      color-mix(in srgb, var(--tile-tone, var(--accent)) 45%, var(--bg-base));
+  }
+
+  /*
+   * Registration marks in the corners of a panel, the way a printed case sheet
+   * carries crop marks. Drawn with two gradients per corner so there is no
+   * extra markup — `--mark` sets the length.
+   *
+   * `::before` rather than `::after`: it lands first in the box's children, so
+   * anything absolutely positioned inside the panel paints over the marks
+   * instead of being crossed by them.
+   */
+  .corner-marks::before {
+    content: "";
+    position: absolute;
+    inset: 8px;
+    pointer-events: none;
+    background:
+      linear-gradient(var(--border-strong), var(--border-strong)) 0 0 /
+        var(--mark, 14px) 1px,
+      linear-gradient(var(--border-strong), var(--border-strong)) 0 0 / 1px
+        var(--mark, 14px),
+      linear-gradient(var(--border-strong), var(--border-strong)) 100% 0 /
+        var(--mark, 14px) 1px,
+      linear-gradient(var(--border-strong), var(--border-strong)) 100% 0 / 1px
+        var(--mark, 14px),
+      linear-gradient(var(--border-strong), var(--border-strong)) 0 100% /
+        var(--mark, 14px) 1px,
+      linear-gradient(var(--border-strong), var(--border-strong)) 0 100% / 1px
+        var(--mark, 14px),
+      linear-gradient(var(--border-strong), var(--border-strong)) 100% 100% /
+        var(--mark, 14px) 1px,
+      linear-gradient(var(--border-strong), var(--border-strong)) 100% 100% /
+        1px var(--mark, 14px);
+    background-repeat: no-repeat;
+    opacity: 0.7;
+  }
+
+  /*
+   * Diagonal hatch — the "no photo on file" fill behind a suspect's initials.
+   * Reads as an evidence placeholder rather than an empty grey box.
+   */
+  .hatch {
+    background-image: repeating-linear-gradient(
+      -45deg,
+      var(--border-strong) 0 1px,
+      transparent 1px 6px
+    );
+  }
+
+  /*
+   * A window arriving on the desk. Deliberately short and small: a window that
+   * flies in from the dock is a toy, and this one just lands. Runs on mount
+   * only, which is exactly when a window is opened or restored.
+   */
+  @keyframes window-in {
+    from {
+      opacity: 0;
+      transform: translateY(6px) scale(0.995);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  .window-frame {
+    animation: window-in 140ms ease-out;
+  }
+
+  /*
+   * The snap ghost. It fades in where the tile will be, then slides between
+   * zones as the pointer moves along an edge — so dragging from the middle of
+   * a screen edge into its corner shows the half becoming a quarter rather
+   * than one rectangle blinking into another.
+   */
+  @keyframes ghost-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  .snap-ghost {
+    animation: ghost-in 110ms ease-out;
+    transition:
+      left 130ms ease-out,
+      top 130ms ease-out,
+      width 130ms ease-out,
+      height 130ms ease-out;
+  }
+
+  /*
+   * The tile picker. It is drawn over the desk rather than inside the window
+   * now, so it arrives on its own instead of simply being revealed — a short
+   * drop out of the title bar it belongs to.
+   */
+  @keyframes menu-in {
+    from {
+      opacity: 0;
+      transform: translateY(-4px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  .snap-menu {
+    animation: menu-in 120ms ease-out;
+  }
+
+  /*
+   * Film grain. Keeps the dark field reading as a photograph of a room
+   * rather than a flat fill, at a cost of one inline SVG.
+   */
+  .bg-grain {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 160px 160px;
+  }
+
+  /*
+   * Wallpaper for the fake desktop inside a case — light, grid, slats,
+   * vignette. The landing page uses none of it, and has no backdrop layers at
+   * all: its background is one flat colour on `body`, edge to edge, from the
+   * nav to the footer. Inside the desktop these stand in for a real machine's
+   * wallpaper, which is a different job.
+   */
+
+  /* Window light: a cold shaft from the top-right, a faint green cast off the
+   * left, and a low warm bounce off the floor. */
+  .bg-lamp {
+    background-image:
+      radial-gradient(
+        ellipse 58% 42% at 84% -8%,
+        rgba(118, 156, 204, 0.22),
+        transparent 68%
+      ),
+      radial-gradient(
+        ellipse 46% 34% at 6% 14%,
+        rgba(63, 185, 80, 0.07),
+        transparent 70%
+      ),
+      radial-gradient(
+        ellipse 80% 34% at 50% 106%,
+        rgba(212, 162, 76, 0.07),
+        transparent 72%
+      );
+  }
+
+  /* Evidence grid. A 76px rule with a 19px sub-rule, faded out towards the
+   * bottom of the viewport so the lines never compete with body copy. */
+  .bg-grid {
+    background-image:
+      linear-gradient(to right, rgba(122, 152, 188, 0.07) 1px, transparent 1px),
+      linear-gradient(
+        to bottom,
+        rgba(122, 152, 188, 0.07) 1px,
+        transparent 1px
+      ),
+      linear-gradient(to right, rgba(122, 152, 188, 0.03) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(122, 152, 188, 0.03) 1px, transparent 1px);
+    background-size:
+      76px 76px,
+      76px 76px,
+      19px 19px,
+      19px 19px;
+    -webkit-mask-image: linear-gradient(
+      to bottom,
+      #000 0%,
+      rgba(0, 0, 0, 0.35) 55%,
+      transparent 92%
+    );
+    mask-image: linear-gradient(
+      to bottom,
+      #000 0%,
+      rgba(0, 0, 0, 0.35) 55%,
+      transparent 92%
+    );
+  }
+
+  /*
+   * Blind slats across the light, angled the way a low window throws them.
+   * Masked to the top-right corner so they read as one shaft rather than
+   * wallpaper over the whole page.
+   */
+  .bg-slats {
+    background-image: repeating-linear-gradient(
+      102deg,
+      rgba(158, 190, 224, 0.075) 0px,
+      rgba(158, 190, 224, 0.075) 3px,
+      transparent 3px,
+      transparent 30px
+    );
+    -webkit-mask-image: radial-gradient(
+      ellipse 62% 48% at 86% -4%,
+      #000 10%,
+      transparent 72%
+    );
+    mask-image: radial-gradient(
+      ellipse 62% 48% at 86% -4%,
+      #000 10%,
+      transparent 72%
+    );
+  }
+
+  /* Closes the corners of the desktop so the windows read as the lit part of
+   * the screen. */
+  .bg-vignette {
+    background-image: radial-gradient(
+      ellipse 120% 80% at 50% 34%,
+      transparent 34%,
+      rgba(2, 4, 7, 0.82) 100%
+    );
+  }
+}
+
+/* Elements revealed by GSAP start hidden, but only when JS can run. */
+@media (prefers-reduced-motion: no-preference) {
+  [data-reveal] {
+    opacity: 0;
+  }
+
+  /*
+   * Suspect-board connectors, hidden before GSAP measures them. The dash is
+   * longer than any connector can be, so the whole curve sits in the gap.
+   * Set here rather than inline so React re-renders can't reset the values
+   * GSAP writes onto the element.
+   */
+  .case-link {
+    stroke-dasharray: 3000;
+    stroke-dashoffset: 3000;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card-noir {
+    transition: none;
+  }
+
+  .card-noir:hover {
+    transform: none;
+  }
+
+  /* The desk still works entirely without motion — a window simply is where it
+   * is, and the snap ghost simply appears at the tile it names. */
+  .window-frame,
+  .snap-ghost,
+  .snap-menu {
+    animation: none;
+    transition: none;
+  }
 }

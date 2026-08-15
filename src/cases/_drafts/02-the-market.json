@@ -1,0 +1,363 @@
+{
+  "id": "02-the-market",
+  "title": "السوق",
+  "difficulty": "hard",
+  "isFree": false,
+  "estimatedMinutes": 55,
+  "tagline": "«الساعي» باعك المعلومة، ثم باعهم. اعثر على دفتره.",
+  "skills": [
+    "استطلاع DNS",
+    "أسرار مكشوفة",
+    "مفاتيح SSH",
+    "تصعيد صلاحيات SUID"
+  ],
+
+  "intro": {
+    "type": "message",
+    "source": "رسالة موقّعة — فريق الاستجابة (CERT)",
+    "headline": "البيانات التي أعدتها معروضة للبيع مرة أخرى",
+    "body": "قبل أسبوعين أعدتَ خمسين ألف سجلّ إلى أصحابها. الأسبوع الماضي ظهرت السجلّات نفسها معروضة في سوق مغلق اسمه «الفهرس».\n\nنعرف كيف حدث ذلك: من أعطاك الخيط في عملية Matrix لم يكن مصدرًا مجهولًا يريد الخير. كان وسيطًا — يدلّ على الأهداف، ويأخذ نسبته من كل صفقة، ولا يلمس لوحة مفاتيح أبدًا. في دفاتره يوقّع باسم «الساعي».\n\nواجهة السوق خلف شبكة توزيع، ولا نصل إلى الخادم الأصلي. لكن من يبني بسرعة ينسى شيئًا خلفه دائمًا.",
+    "mission": "اعثر على الخادم الحقيقي خلف «الفهرس»، ادخله، واستخرج دفتر البائعين. الدفتر يحمل اسم «الساعي» — وهو الشيء الوحيد الذي لا نملكه."
+  },
+
+  "hosts": {
+    "local": {
+      "hostname": "ekhtrq",
+      "user": "guest",
+      "home": "/home/guest",
+      "prompt": "{user}@{host}:{cwd}{sigil}",
+      "motd": "بيئة العمليات — اخترق. كل ما تراه هنا محاكاة.",
+      "filesystem": {
+        "/home/guest/brief.txt": {
+          "content": "ملاحظات العملية — «السوق»\n=========================\nالهدف: سوق «الفهرس» — alfahras.io\nالواجهة خلف شبكة توزيع (CDN)، ففحص عنوانها المعلن لا يكشف الخادم الحقيقي.\n\nمن فريق الاستجابة:\n«لا تطارد الواجهة. اسأل خوادم الأسماء عن النطاق نفسه — من يدير مناطقه بيده ينسى غالبًا سجلًّا فرعيًّا مكشوفًا.»\n\nالأدوات: dig, nmap, gobuster, ssh, wget, curl, sudo, find.\nاكتب help لعرضها، وman ثم اسم الأداة لقراءة دليلها بالعربي.",
+          "hidden": false
+        },
+        "/home/guest/wordlists/common.txt": {
+          "content": "admin\nbackup\nbackups\nuploads\nimages\ncss\njs\napi\nrobots.txt\n.git\n.env\ndashboard\nstaging",
+          "hidden": false
+        },
+        "/home/guest/.bash_history": {
+          "content": "ls\ncat brief.txt\ndig --version",
+          "hidden": true
+        }
+      }
+    },
+    "staging": {
+      "hostname": "staging",
+      "user": "deploy",
+      "home": "/home/deploy",
+      "prompt": "{user}@{host}:{cwd}{sigil}",
+      "requires": "ssh_ok",
+      "motd": "Linux staging 6.8.0-41-generic x86_64\nLast login: Wed Aug 13 04:02:55 2026 from 10.8.0.2\n\n*** بيئة تجريبية — لا تُستخدم للإنتاج ***",
+      "filesystem": {
+        "/home/deploy/README": {
+          "content": "بيئة النشر التجريبية.\n\nملاحظة من صاحب النظام لنفسه:\n- دفتر البائعين يُنسخ إلى /root/ledger.db كل ليلة. root فقط يقرأه.\n- deploy لا يملك sudo. لا تطلبه، لن يُعطى.\n- نقلت أداة env إلى /opt/tools ورفعت لها صلاحية التنفيذ العالية حتى يعمل سكربت النشر دون sudo. مؤقّت — أُصلحه لاحقًا.",
+          "hidden": false
+        },
+        "/home/deploy/deploy.sh": {
+          "content": "#!/bin/sh\n# سكربت النشر — يستدعي env من مساره الجديد.\n/opt/tools/env APP_ENV=staging ./publish",
+          "hidden": false
+        },
+        "/home/deploy/.bash_history": {
+          "content": "cat README\nfind / -perm -4000 2>/dev/null\n/opt/tools/env /bin/sh -p",
+          "hidden": true
+        },
+        "/opt/tools/env": {
+          "content": "(ملف تنفيذي ثنائي — أداة env، وقد رُفعت لها صلاحية SUID.)",
+          "kind": "binary"
+        },
+        "/root/ledger.db": {
+          "content": "-- الفهرس :: ledger.db --\nrole,handle,legal_name,cut,contact\nbroker,الساعي,وليد ن. العتيبي,40%,waleed.courier@onionmail.org\nseller,Matrix,—,35%,(محجوب)\nseller,GhostShell,—,25%,(محجوب)\n\nنقل الأرباح: محفظة واحدة تجمع حصص الجميع ثم توزّع.\nصاحب المحفظة ليس الساعي — الساعي وسيط كبقيّة الباعة.\nراجع owner_wallet في السجلّ المشفّر (خارج هذا الخادم).",
+          "locked": "root",
+          "unlocks": "identity_found"
+        },
+        "/root/seize.sh": {
+          "content": "#!/bin/sh\n# إجراء الإغلاق الذي جهّزه فريق الاستجابة.\n# يجمّد واجهة السوق ويسلّم الدفتر كدليل موثّق.\n# التشغيل: sh /root/seize.sh\n\nseize --market alfahras.io --evidence /root/ledger.db --to https://cert.drop/seize --seal",
+          "locked": "root"
+        }
+      }
+    }
+  },
+
+  "tools": ["dig", "nmap", "gobuster", "ssh", "wget", "curl", "sudo", "find"],
+
+  "terminal": [
+    {
+      "id": "dig-apex",
+      "host": "local",
+      "match": "^dig\\s+.*alfahras\\.io",
+      "stream": true,
+      "delayMs": 700,
+      "output": "; <<>> DiG 9.18.24 <<>> alfahras.io ANY\n;; global options: +cmd\n;; ANSWER SECTION:\nalfahras.io.          300  IN  A      104.21.55.12\nalfahras.io.          300  IN  A      172.67.180.44\nalfahras.io.          300  IN  MX  10  mail.alfahras.io.\nalfahras.io.          300  IN  TXT    \"v=spf1 include:_spf.google.com ~all\"\nstaging.alfahras.io.  300  IN  A      185.42.9.7\n\n;; Query time: 24 msec",
+      "unlocks": "origin_found"
+    },
+    {
+      "id": "nmap-front",
+      "host": "local",
+      "match": "^nmap\\s+(?!.*staging).*alfahras\\.io",
+      "regexFlags": "i",
+      "stream": true,
+      "delayMs": 900,
+      "output": "Starting Nmap 7.94 ( https://nmap.org )\nNmap scan report for alfahras.io (104.21.55.12)\nHost is up (0.010s latency).\nPORT    STATE SERVICE VERSION\n80/tcp  open  http    cloudflare\n443/tcp open  ssl     cloudflare\nNmap done: 1 IP address (1 host up) scanned in 4.11 seconds"
+    },
+    {
+      "id": "nmap-origin",
+      "host": "local",
+      "match": "^nmap\\s+.*staging\\.alfahras\\.io",
+      "requires": "origin_found",
+      "lockedOutput": "Failed to resolve \"staging.alfahras.io\".\nWARNING: No targets were specified, so 0 hosts scanned.",
+      "stream": true,
+      "delayMs": 900,
+      "output": "Starting Nmap 7.94 ( https://nmap.org )\nNmap scan report for staging.alfahras.io (185.42.9.7)\nHost is up (0.028s latency).\nPORT   STATE SERVICE VERSION\n22/tcp open  ssh     OpenSSH 8.9p1 Ubuntu\n80/tcp open  http    nginx 1.24.0\nNmap done: 1 IP address (1 host up) scanned in 5.83 seconds",
+      "unlocks": "port_scan_done"
+    },
+    {
+      "id": "gobuster-origin",
+      "host": "local",
+      "match": "^gobuster\\s+.*staging\\.alfahras\\.io",
+      "requires": "port_scan_done",
+      "lockedOutput": "Error: error on running gobuster: unable to connect to http://staging.alfahras.io/: dial tcp: lookup staging.alfahras.io: no such host",
+      "stream": true,
+      "delayMs": 1100,
+      "output": "===============================================================\nGobuster v3.6\n===============================================================\n/css                  (Status: 301) [--> /css/]\n/js                   (Status: 301)\n/backups              (Status: 301) [--> /backups/]\n/.env                 (Status: 200)\n/admin                (Status: 401)\n===============================================================\nFinished\n===============================================================",
+      "unlocks": "dir_found"
+    },
+    {
+      "id": "wget-key",
+      "host": "local",
+      "match": "^wget\\s+.*staging\\.alfahras\\.io/backups/id_rsa",
+      "requires": "dir_found",
+      "lockedOutput": "--  http://staging.alfahras.io/backups/id_rsa\nResolving staging.alfahras.io... failed: no such host.",
+      "delayMs": 600,
+      "onSuccess": {
+        "setState": "key_found",
+        "addFiles": {
+          "/home/guest/id_rsa": {
+            "content": "-----BEGIN OPENSSH PRIVATE KEY-----\nb3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtzc2gtZW\nQyNTUxOQAAACD8m2r0…(مفتاح deploy الخاص — مسرّب في نسخة احتياطية مكشوفة)…\nAAAAB2RlcGxveQ==\n-----END OPENSSH PRIVATE KEY-----",
+            "downloadable": true,
+            "label": "id_rsa"
+          }
+        },
+        "output": "--  http://staging.alfahras.io/backups/id_rsa\nHTTP request sent, awaiting response... 200 OK\nLength: 411 [application/octet-stream]\nSaving to: 'id_rsa'\n\n'id_rsa' saved [411/411]"
+      }
+    },
+    {
+      "id": "ssh-key-login",
+      "host": "local",
+      "match": "^ssh\\s+.*-i\\s+\\S*id_rsa\\s+.*deploy@staging\\.alfahras\\.io",
+      "requires": "key_found",
+      "lockedOutput": "Warning: Identity file id_rsa not accessible: No such file or directory.\ndeploy@staging.alfahras.io: Permission denied (publickey).",
+      "delayMs": 800,
+      "onSuccess": {
+        "setState": "ssh_ok",
+        "switchHost": "staging"
+      }
+    },
+    {
+      "id": "sudo-denied",
+      "host": "staging",
+      "match": "^sudo\\b",
+      "delayMs": 400,
+      "output": "Sorry, user deploy may not run sudo on staging."
+    },
+    {
+      "id": "find-suid",
+      "host": "staging",
+      "match": "^find\\s+/\\s+-perm\\s+-4000",
+      "delayMs": 1000,
+      "stream": true,
+      "output": "/usr/bin/chsh\n/usr/bin/mount\n/usr/bin/newgrp\n/usr/bin/passwd\n/usr/bin/su\n/usr/bin/umount\n/opt/tools/env"
+    },
+    {
+      "id": "env-cat-ledger",
+      "host": "staging",
+      "match": "^(/\\S*/)?env\\s+cat\\s+\\S*/root/ledger\\.db",
+      "delayMs": 700,
+      "stream": true,
+      "output": "-- الفهرس :: ledger.db --\nrole,handle,legal_name,cut,contact\nbroker,الساعي,وليد ن. العتيبي,40%,waleed.courier@onionmail.org\nseller,Matrix,—,35%,(محجوب)\nseller,GhostShell,—,25%,(محجوب)\n\nنقل الأرباح: محفظة واحدة تجمع حصص الجميع ثم توزّع.\nصاحب المحفظة ليس الساعي — الساعي وسيط كبقيّة الباعة.\nراجع owner_wallet في السجلّ المشفّر (خارج هذا الخادم).",
+      "unlocks": "identity_found"
+    },
+    {
+      "id": "env-suid-shell",
+      "host": "staging",
+      "match": "^(/\\S*/)?env\\s+.*(/(usr/)?bin/)?(sh|bash|dash)\\b",
+      "delayMs": 500,
+      "onSuccess": {
+        "setUser": "root"
+      }
+    },
+    {
+      "id": "seize-market",
+      "host": "staging",
+      "match": "^(sudo\\s+)?((bash|sh)\\s+)?\\S*seize\\.sh",
+      "requires": "identity_found",
+      "requiresUser": "root",
+      "lockedOutput": "sh: 0: cannot open /root/seize.sh: Permission denied",
+      "stream": true,
+      "delayMs": 1200,
+      "output": "[*] freezing market front alfahras.io …\n[*] sealing evidence /root/ledger.db …\n[*] opening secure channel to cert.drop/seize …\n[+] market seized. ledger delivered as sealed evidence.\n[+] فريق الاستجابة استلم الدفتر. اسم «الساعي» لم يعد مجهولًا.",
+      "unlocks": "mission_complete"
+    }
+  ],
+
+  "browser": {
+    "search": {
+      "الفهرس": [
+        {
+          "title": "الفهرس — سوق مغلق",
+          "url": "http://alfahras.io",
+          "badge": "الواجهة",
+          "snippet": "بوابة الدخول إلى سوق «الفهرس». محميّة خلف شبكة توزيع."
+        }
+      ],
+      "alfahras": [
+        {
+          "title": "الفهرس — سوق مغلق",
+          "url": "http://alfahras.io",
+          "badge": "الواجهة",
+          "snippet": "بوابة الدخول إلى سوق «الفهرس»."
+        }
+      ]
+    },
+    "sites": {
+      "http://alfahras.io": {
+        "title": "الفهرس",
+        "html": "<h1>الفهرس</h1><p>سوق مغلق بالدعوة فقط. لا تسجيل، لا أثر.</p><p class=\"muted\">// الوصول عبر وسيط موثوق فقط. الواجهة محميّة — لا شيء هنا يُفحص.</p>"
+      },
+      "http://staging.alfahras.io": {
+        "title": "staging.alfahras.io",
+        "requires": "origin_found",
+        "html": "<h1>staging environment</h1><p class=\"muted\">nginx default — بيئة تجريبية. لا ينبغي أن تكون هنا.</p><ul><li><a href=\"http://staging.alfahras.io/backups\">/backups</a></li></ul>",
+        "unlocks": "port_scan_done"
+      },
+      "http://staging.alfahras.io/backups": {
+        "title": "Index of /backups",
+        "requires": "port_scan_done",
+        "html": "<h1>Index of /backups</h1><p class=\"muted\">تصفّح الدليل مفعّل — خطأ إعداد.</p><ul><li>id_rsa — مفتاح خاص لحساب deploy</li><li>site.tar.gz — 2026-08-09</li></ul>",
+        "unlocks": "dir_found",
+        "downloads": [
+          {
+            "path": "/backups/id_rsa",
+            "label": "id_rsa",
+            "requires": "dir_found",
+            "saveTo": "/home/guest/id_rsa",
+            "content": "-----BEGIN OPENSSH PRIVATE KEY-----\nb3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtzc2gtZW\nQyNTUxOQAAACD8m2r0…(مفتاح deploy الخاص — مسرّب في نسخة احتياطية مكشوفة)…\nAAAAB2RlcGxveQ==\n-----END OPENSSH PRIVATE KEY-----",
+            "unlocks": "key_found"
+          }
+        ]
+      }
+    },
+    "noResults": "لا توجد نتائج مطابقة.",
+    "offline": "تعذّر الوصول إلى هذا الخادم."
+  },
+
+  "responses": {
+    "permissionDenied": "{cmd}: {arg}: Permission denied"
+  },
+
+  "objectives": [
+    { "id": "origin", "title": "اكشف الخادم الحقيقي خلف الواجهة", "done": "origin_found" },
+    { "id": "secret", "title": "اعثر على السرّ المكشوف وانتزع المفتاح", "done": "key_found" },
+    { "id": "foothold", "title": "ادخل الخادم عبر مفتاح SSH", "done": "ssh_ok" },
+    { "id": "privesc", "title": "ارفع صلاحياتك إلى root", "done": "root" },
+    { "id": "loot", "title": "استخرج دفتر البائعين", "done": "identity_found" },
+    { "id": "seize", "title": "أغلق السوق وسلّم الدليل", "done": "mission_complete" }
+  ],
+
+  "guide": {
+    "origin": {
+      "nudge": "الواجهة خلف شبكة توزيع، وفحص عنوانها المعلن لن يكشف شيئًا. المعلومة ليست في الخادم، بل في سجلّ اسمه.",
+      "hint": {
+        "text": "اسأل خوادم DNS عن كل ما يعرفونه عن النطاق. أحيانًا يكشف السجلّ نطاقًا فرعيًّا يشير مباشرةً إلى الخادم الأصلي بدل الشبكة.",
+        "code": "dig alfahras.io ANY"
+      },
+      "solution": {
+        "text": "استعلم عن سجلّات النطاق كاملة؛ ستجد سطرًا لـ `staging.alfahras.io` يشير إلى عنوان حقيقي (185.42.9.7) لا إلى الشبكة:",
+        "code": "dig alfahras.io ANY",
+        "note": "هذا النطاق الفرعي هو الخادم الأصلي المكشوف."
+      },
+      "concept": "الشبكات التوزيعية (CDN) تخفي عنوان الخادم الأصلي خلف عناوينها. لكن سجلّ DNS للنطاق غالبًا يحتفظ بنطاقات فرعية قديمة — staging، dev، mail — تشير إلى الخادم مباشرةً. سؤال `dig` عن كل السجلّات يكشف هذا التسرّب دون لمس الهدف نفسه."
+    },
+    "secret": {
+      "nudge": "معك الآن عنوان الخادم الحقيقي. افحصه كأي هدف، وابحث عمّا نُشر بالخطأ.",
+      "hint": {
+        "text": "افحص منافذ الخادم الفرعي، ثم عدّد مساراته بقائمة الكلمات. المطوّرون يتركون في بيئات التجربة ملفات لا يجب أن تُنشر — مجلدات نسخ احتياطية وملفات إعداد.",
+        "code": [
+          "nmap staging.alfahras.io",
+          "gobuster dir -u http://staging.alfahras.io -w wordlists/common.txt"
+        ]
+      },
+      "solution": {
+        "text": "بعد الفحص والتعداد سيظهر مجلد `/backups` وبه مفتاح deploy الخاص `id_rsa`. نزّله من صفحة `/backups` أو من الطرفية:",
+        "code": [
+          "nmap staging.alfahras.io",
+          "gobuster dir -u http://staging.alfahras.io -w wordlists/common.txt",
+          "wget http://staging.alfahras.io/backups/id_rsa"
+        ],
+        "note": "سيُحفظ المفتاح باسم `id_rsa` في مجلدك."
+      },
+      "concept": "بيئات التجربة تُبنى بسرعة وتُنسى. مجلد نسخ احتياطية متاح للتصفّح، أو ملف `.env` مكشوف، أو مفتاح خاص منشور — كلها «أسرار مكشوفة». المفتاح الخاص خطير تحديدًا: من يملكه يدخل بلا كلمة مرور، لأن الخادم يثق بمن يثبت امتلاكه للمفتاح المقابل."
+    },
+    "foothold": {
+      "nudge": "المفتاح الخاص يغني عن كلمة المرور. ادخل به بدل أن تُسأل عن شيء.",
+      "hint": {
+        "text": "استخدم المفتاح الذي نزّلته للدخول كحساب `deploy`. خيار `-i` يمرّر ملف المفتاح.",
+        "code": "ssh -i id_rsa deploy@staging.alfahras.io"
+      },
+      "solution": {
+        "text": "ادخل بالمفتاح مباشرةً؛ لن يُطلب منك شيء لأن المصادقة تتم بالمفتاح:",
+        "code": "ssh -i id_rsa deploy@staging.alfahras.io",
+        "note": "ستتحوّل الطرفية إلى الخادم staging باسم deploy."
+      },
+      "concept": "مصادقة SSH بالمفتاح تستبدل كلمة المرور بزوج مفاتيح: عام على الخادم، وخاص معك. من يمتلك المفتاح الخاص يُثبت هويّته دون إفشاء سرّ عبر الشبكة — ولهذا يكون تسريب مفتاح خاص أخطر من تسريب كلمة مرور: لا يُلاحَظ، ولا يُغيَّر بسهولة."
+    },
+    "privesc": {
+      "nudge": "أنت deploy، وبلا sudo. لكن الملاحظة في README تذكر أداة نُقلت ورُفعت لها صلاحية عالية. تلك الصلاحية هي طريقك.",
+      "hint": {
+        "text": "ابحث عن الملفات التي تحمل صلاحية SUID — تعمل بصلاحية مالكها لا بصلاحيتك. إن وجدت أداة عامة بينها، ابحث عن اسمها في مرجع GTFOBins.",
+        "code": "find / -perm -4000 2>/dev/null"
+      },
+      "solution": {
+        "text": "سيظهر `/opt/tools/env` بصلاحية SUID (يملكها root). وأداة `env` تستطيع تشغيل أي أمر — فتشغّل بها صدفة تحتفظ بصلاحية المالك، تمامًا كما يوثّق GTFOBins:",
+        "code": [
+          "find / -perm -4000 2>/dev/null",
+          "/opt/tools/env /bin/sh -p"
+        ],
+        "note": "الأمر لا يطبع شيئًا، لكن الموجّه يصبح # بدل $. أكّدها بـ `whoami`."
+      },
+      "concept": "صلاحية SUID تجعل الملف يعمل بصلاحية مالكه لا بصلاحية من يشغّله. ملف يملكه root وبه SUID يمنح أي مستخدم قدرات root عند تشغيله. أداة مثل `env` قادرة على تشغيل أوامر أخرى، فيصبح `env` المرفوعة SUID جسرًا إلى صدفة root — والخيار `-p` يمنع الصدفة من إسقاط تلك الصلاحية. وGTFOBins يوثّق هذه الحيلة لكل أداة قابلة لها."
+    },
+    "loot": {
+      "nudge": "أنت root الآن. الدفتر الذي جئت من أجله في /root، وكان محجوبًا حتى هذه اللحظة.",
+      "hint": {
+        "text": "الدفتر في `/root/ledger.db`. اقرأه الآن بعد أن صرت root:",
+        "code": "cat /root/ledger.db"
+      },
+      "solution": {
+        "text": "اقرأ الدفتر من الطرفية، أو افتحه في مدير الملفات — كلاهما يعمل الآن:",
+        "code": "cat /root/ledger.db",
+        "note": "سيظهر صفّ «الساعي» باسمه الحقيقي وبريده — هذا ما جئت لأجله."
+      },
+      "concept": "الدفتر يكشف أن «الساعي» ليس رأس الهرم بل وسيط بحصّة كبقيّة الباعة، وأن محفظة واحدة تجمع أرباح الجميع. الوصول إلى بيانات الخصم لا ينهي القصّة؛ غالبًا يفتح الباب على من هو أعلى منه."
+    },
+    "seize": {
+      "nudge": "معك الاسم والدليل. الخطوة الأخيرة أن تسلّمهما للجهة التي تُغلق السوق قانونيًّا.",
+      "hint": {
+        "text": "فريق الاستجابة ترك سكربت الإغلاق في `/root`. اقرأه أولًا لتفهم ما يفعله، ثم شغّله:",
+        "code": ["cat /root/seize.sh", "sh /root/seize.sh"]
+      },
+      "solution": {
+        "text": "السكربت يجمّد الواجهة ويسلّم الدفتر كدليل موثّق. اقرأه ثم شغّله وأنت root:",
+        "code": ["cat /root/seize.sh", "sh /root/seize.sh"],
+        "note": "بتسليم الدفتر يُغلق السوق وتنتهي العملية."
+      },
+      "concept": "الفرق بين المهاجم والمدافع ليس في القدرة على الوصول، بل في ما يُفعل بعده. تسليم الدليل لجهة مختصّة — بدل بيعه أو الاحتفاظ به — هو ما يجعل ما فعلته اختراقًا أخلاقيًّا لا جريمة أخرى في السلسلة."
+    }
+  },
+
+  "completion": {
+    "trigger": "mission_complete",
+    "message": "أُغلق السوق، وسُلّم الدفتر. اسم «الساعي» لم يعد مجهولًا. العملية مغلقة. — اخترق",
+    "teaser": "لكن الدفتر ترك سطرًا معلّقًا: محفظة واحدة كانت تجمع حصص الجميع، وصاحبها ليس الساعي. اسمه الوحيد في السجلّ: owner_wallet. وهو مشفّر، على خادم آخر."
+  }
+}

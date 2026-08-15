@@ -1,0 +1,374 @@
+{
+  "id": "01-the-name",
+  "title": "الاسم",
+  "difficulty": "hard",
+  "isFree": true,
+  "estimatedMinutes": 45,
+  "tagline": "مجموعة سرّبت خمسين ألف حساب. أعِد الأسماء لأصحابها.",
+  "skills": ["استخبارات مفتوحة", "فحص وتعداد", "كسر تجزئة", "تصعيد صلاحيات"],
+
+  "intro": {
+    "type": "article",
+    "source": "مصدر مجهول — 03:14",
+    "headline": "تسريب بيانات ٥٠ ألف مستخدم يهزّ متجرًا إلكترونيًا",
+    "body": "مجموعة تُسمّي نفسها «Matrix» نشرت عيّنة من قاعدة بيانات مسروقة على موقعها، وتتباهى بأن لا أحد يستطيع لمسها. وصلتك رسالة من مصدر مجهول يقول إنه يعرف كيف دخلوا، وإن الباب ما زال مفتوحًا.\n\nلا سلطة رسمية تحرّكت بعد. القاعدة الكاملة ما زالت على خادمهم، والوقت الذي تبقّى قبل أن يبيعوها في السوق قصير.",
+    "mission": "اخترق خادم المجموعة، استخرج قاعدة بيانات الضحايا، وأعِدها عبر قناة الإعادة الآمنة قبل أن تُباع."
+  },
+
+  "hosts": {
+    "local": {
+      "hostname": "ekhtrq",
+      "user": "guest",
+      "home": "/home/guest",
+      "prompt": "{user}@{host}:{cwd}{sigil}",
+      "motd": "بيئة العمليات — اخترق. كل ما تراه هنا محاكاة.",
+      "filesystem": {
+        "/home/guest/notes.txt": {
+          "content": "ملاحظات العملية\n===============\nالهدف: مجموعة Matrix — موقعهم matrix-dump.io\nالمصدر المجهول قال: \"ابدأوا من الاسم. كل شيء بدأ من موقعهم.\"\n\nتذكير بالأدوات المتاحة: nmap, gobuster, john, ssh, wget, curl, sudo, find.\nاكتب help في الطرفية لعرضها، وman ثم اسم الأداة لقراءة دليلها بالعربي.",
+          "hidden": false
+        },
+        "/home/guest/wordlists/common.txt": {
+          "content": "admin\nbackup\nbackups\nuploads\nimages\ncss\njs\napi\nrobots.txt\n.git\ndashboard",
+          "hidden": false
+        },
+        "/home/guest/.bash_history": {
+          "content": "ls\ncat notes.txt\nnmap --version",
+          "hidden": true
+        }
+      }
+    },
+    "matrix": {
+      "hostname": "matrix",
+      "user": "admin",
+      "home": "/home/admin",
+      "prompt": "{user}@{host}:{cwd}{sigil}",
+      "requires": "ssh_ok",
+      "motd": "Last login: Tue Aug 12 02:41:07 from 10.0.0.4\nadmin@matrix:~$ — أنت الآن داخل الخادم. لكنك مستخدم عادي.",
+      "filesystem": {
+        "/home/admin/readme.txt": {
+          "content": "إلى من يهمّه الأمر:\nقاعدة بيانات الضحايا في /root. لا يملك admin صلاحية قراءتها — root فقط.\nلو احتجت الصلاحيات، راجع ما يُسمح لك بتشغيله بصلاحية أعلى.",
+          "hidden": false
+        },
+        "/home/admin/deadline.txt": {
+          "content": "المزاد يغلق الجمعة 23:59 UTC.\nالمشتري دفع عربونًا بالفعل. بعد التسليم نمسح الخادم بالكامل.\nلا أحد يبقي نسخة. لا أحد يسأل.",
+          "hidden": false
+        },
+        "/home/admin/.bash_history": {
+          "content": "sudo -l\nfind / -name '*.db' 2>/dev/null\ncat /root/victims.db",
+          "hidden": true
+        },
+        "/var/lib/matrix/sessions.db": {
+          "content": "-- sessions.db --\nsession_id,user,last_seen\na91f,admin,2026-08-14T22:10:04Z\n(لا شيء ذا قيمة هنا — جلسات لوحة التحكم فقط.)",
+          "hidden": false
+        },
+        "/root/.bash_history": {
+          "content": "cat victims.db | wc -l\n# المشتري يريد عيّنة أكبر قبل الدفع\nmail -s 'sample' الساعي@protonmail.com < sample.csv\n# «الساعي» هو من دلّنا على المتجر أصلًا. يأخذ 40% ولا يلمس لوحة مفاتيح.\nshred -u sample.csv",
+          "hidden": true,
+          "locked": "root",
+          "unlocks": "courier_named"
+        },
+        "/root/victims.db": {
+          "content": "-- MATRIX :: victims.db (SQLite dump) --\nid,email,full_name,phone,city\n1,mona.k@example.com,منى الكندري,+9655xxxxxx1,الكويت\n2,y.alharbi@example.com,ياسر الحربي,+9665xxxxxx7,الرياض\n3,rana.s@example.com,رنا سالم,+9715xxxxxx3,دبي\n... (49,997 صفًّا إضافيًا) ...\n\nهذه بيانات أشخاص حقيقيين. أعِدها.",
+          "locked": "root",
+          "unlocks": "data_exfiltrated"
+        },
+        "/root/restore_to_owners.sh": {
+          "content": "#!/bin/sh\n# قناة الإعادة التي جهّزها المصدر المجهول.\n# تُرسل قاعدة البيانات إلى فريق الاستجابة الذي سيبلّغ الضحايا.\n# التشغيل: sh /root/restore_to_owners.sh\n\nupload /root/victims.db --to https://cert.drop/return --seal",
+          "locked": "root"
+        }
+      }
+    }
+  },
+
+  "tools": ["nmap", "gobuster", "john", "ssh", "wget", "curl", "sudo", "find"],
+
+  "terminal": [
+    {
+      "id": "nmap-target",
+      "host": "local",
+      "match": "^nmap\\s+.*matrix-dump\\.io",
+      "stream": true,
+      "delayMs": 900,
+      "output": "Starting Nmap 7.94 ( https://nmap.org )\nNmap scan report for matrix-dump.io (185.42.11.9)\nHost is up (0.031s latency).\nNot shown: 998 filtered tcp ports\nPORT   STATE SERVICE VERSION\n22/tcp open  ssh     OpenSSH 8.9p1 Ubuntu\n80/tcp open  http    nginx 1.24.0\nNmap done: 1 IP address (1 host up) scanned in 6.42 seconds",
+      "unlocks": "port_scan_done"
+    },
+    {
+      "id": "gobuster-target",
+      "host": "local",
+      "match": "^gobuster\\s+.*matrix-dump\\.io",
+      "requires": "port_scan_done",
+      "lockedOutput": "Error: error on running gobuster: unable to connect to http://matrix-dump.io/: dial tcp 185.42.11.9:80: i/o timeout",
+      "stream": true,
+      "delayMs": 1100,
+      "output": "===============================================================\nGobuster v3.6\n===============================================================\n/images               (Status: 301) [--> /images/]\n/css                  (Status: 301)\n/backups              (Status: 301) [--> /backups/]\n/admin                (Status: 401)\n===============================================================\nFinished\n===============================================================",
+      "unlocks": "dir_found"
+    },
+    {
+      "id": "john-crack",
+      "host": "local",
+      "match": "^john\\b.*admin\\.bak",
+      "requires": "hash_downloaded",
+      "lockedOutput": "fopen: admin.bak: No such file or directory",
+      "stream": true,
+      "delayMs": 1400,
+      "output": "Using default input encoding: UTF-8\nLoaded 1 password hash (bcrypt [Blowfish 32/64])\nPress 'q' or Ctrl-C to abort, almost any other key for status\nSm4ll_W0rld       (admin)\n1g 0:00:00:11 DONE (2026-08-15 03:31) 0.08g/s\nSession completed.",
+      "unlocks": "creds_cracked"
+    },
+    {
+      "id": "ssh-foothold",
+      "host": "local",
+      "match": "^ssh\\s+admin@matrix-dump\\.io",
+      "requires": "creds_cracked",
+      "lockedOutput": "admin@matrix-dump.io: Permission denied (publickey,password).",
+      "delayMs": 700,
+      "prompt": "admin@matrix-dump.io's password:",
+      "expectInput": "Sm4ll_W0rld",
+      "masked": true,
+      "onFailure": {
+        "output": "Permission denied, please try again."
+      },
+      "onSuccess": {
+        "setState": "ssh_ok",
+        "switchHost": "matrix"
+      }
+    },
+    {
+      "id": "sudo-list",
+      "host": "matrix",
+      "match": "^sudo\\s+-l\\b",
+      "delayMs": 400,
+      "output": "Matching Defaults entries for admin on matrix:\n    env_reset, mail_badpass\n\nUser admin may run the following commands on matrix:\n    (root) NOPASSWD: /usr/bin/find",
+      "unlocks": "privesc_vector"
+    },
+    {
+      "id": "sudo-find-shell-escape",
+      "host": "matrix",
+      "match": "^sudo\\s+find\\s+\\S+.*-exec\\s+(/(usr/)?bin/)?(sh|bash|dash|zsh)\\b",
+      "delayMs": 500,
+      "onSuccess": {
+        "setUser": "root"
+      }
+    },
+    {
+      "id": "sudo-find-exec-cat",
+      "host": "matrix",
+      "match": "^sudo\\s+find\\s+\\S*/root\\S*.*-exec\\s+(/(usr/)?bin/)?cat\\b",
+      "delayMs": 700,
+      "stream": true,
+      "output": "-- MATRIX :: victims.db (SQLite dump) --\nid,email,full_name,phone,city\n1,mona.k@example.com,منى الكندري,+9655xxxxxx1,الكويت\n2,y.alharbi@example.com,ياسر الحربي,+9665xxxxxx7,الرياض\n3,rana.s@example.com,رنا سالم,+9715xxxxxx3,دبي\n... (49,997 صفًّا إضافيًا) ...\n\nهذه بيانات أشخاص حقيقيين. أعِدها.",
+      "unlocks": "data_exfiltrated"
+    },
+    {
+      "id": "sudo-find-plain",
+      "host": "matrix",
+      "match": "^sudo\\s+find\\b",
+      "delayMs": 600,
+      "stream": true,
+      "output": "/home/admin\n/home/admin/readme.txt\n/home/admin/deadline.txt\n/var/lib/matrix/sessions.db\n/root\n/root/victims.db\n/root/restore_to_owners.sh"
+    },
+    {
+      "id": "find-suid",
+      "host": "matrix",
+      "match": "^find\\s+/\\s+-perm\\s+-4000",
+      "delayMs": 1000,
+      "stream": true,
+      "output": "/usr/bin/chsh\n/usr/bin/mount\n/usr/bin/passwd\n/usr/bin/su\n/usr/bin/sudo\n/usr/bin/umount"
+    },
+    {
+      "id": "find-db",
+      "host": "matrix",
+      "match": "^find\\s+/\\S*\\s+.*-name\\s+['\"]?\\*?\\.?db",
+      "delayMs": 800,
+      "stream": true,
+      "output": "/var/lib/matrix/sessions.db"
+    },
+    {
+      "id": "restore-return",
+      "host": "matrix",
+      "match": "^(sudo\\s+)?((bash|sh)\\s+)?\\S*restore_to_owners\\.sh",
+      "requires": "data_exfiltrated",
+      "requiresUser": "root",
+      "lockedOutput": "sh: 0: cannot open /root/restore_to_owners.sh: Permission denied",
+      "stream": true,
+      "delayMs": 1200,
+      "output": "[*] sealing /root/victims.db …\n[*] opening secure channel to cert.drop/return …\n[+] 50,000 records transmitted and verified.\n[+] فريق الاستجابة استلم القاعدة. سيتم إبلاغ الضحايا.",
+      "unlocks": "mission_complete"
+    }
+  ],
+
+  "browser": {
+    "search": {
+      "matrix": [
+        {
+          "title": "Matrix — نحن من دخلنا",
+          "url": "http://matrix-dump.io",
+          "badge": "الموقع الرسمي",
+          "snippet": "الصفحة الرسمية لمجموعة Matrix. عيّنات من قواعد بيانات مسرّبة وتهديدات."
+        },
+        {
+          "title": "منتدى الأمن: من هم Matrix فعلًا؟",
+          "url": "http://sec-forum.io/t/matrix",
+          "badge": "منتدى",
+          "snippet": "نقاش حول أخطاء المجموعة الأمنية وعاداتهم في إعادة استخدام كلمات المرور."
+        }
+      ],
+      "matrix leaks": [
+        {
+          "title": "Matrix — نحن من دخلنا",
+          "url": "http://matrix-dump.io",
+          "badge": "الموقع الرسمي",
+          "snippet": "الصفحة الرسمية لمجموعة Matrix."
+        }
+      ],
+      "matrix dump": [
+        {
+          "title": "Matrix — نحن من دخلنا",
+          "url": "http://matrix-dump.io",
+          "badge": "الموقع الرسمي",
+          "snippet": "الصفحة الرسمية لمجموعة Matrix."
+        }
+      ]
+    },
+    "sites": {
+      "http://matrix-dump.io": {
+        "title": "Matrix",
+        "html": "<h1>MATRIX</h1><p>نحن من دخلنا. خمسون ألف حساب بين أيدينا، ولا أحد يستطيع لمسنا.</p><p>خوادمنا محصّنة، وفريقنا لا يُخطئ. جرّبوا.</p><ul><li><a href=\"http://sec-forum.io/t/matrix\">ماذا يقول عنّا «خبراء الأمن»؟</a></li></ul><p class=\"muted\">// نصيحة للفضوليين: لا يوجد ما تجدونه هنا. حتى محرّكات البحث لا نسمح لها.</p>",
+        "downloads": [
+          {
+            "path": "/robots.txt",
+            "label": "robots.txt",
+            "content": "User-agent: *\nDisallow: /backups/\nDisallow: /admin/\n# لا تفهرسوا النسخ الاحتياطية.",
+            "unlocks": "dir_found"
+          }
+        ]
+      },
+      "http://matrix-dump.io/backups": {
+        "title": "Index of /backups",
+        "html": "<h1>Index of /backups</h1><p class=\"muted\">تصفّح الدليل مفعّل — خطأ إعداد.</p><ul><li>admin.bak — 2026-08-10</li><li>site.tar.gz — 2026-08-01</li></ul>",
+        "requires": "dir_found",
+        "downloads": [
+          {
+            "path": "/backups/admin.bak",
+            "label": "admin.bak",
+            "requires": "dir_found",
+            "content": "admin:$2b$12$Km3xQ9pLZ0oYd7Wc.f2Nu8sJ1rVtB6hE4gN0aXpCq9mK2wLdSxye",
+            "unlocks": "hash_downloaded"
+          }
+        ]
+      },
+      "http://sec-forum.io/t/matrix": {
+        "title": "من هم Matrix فعلًا؟",
+        "html": "<h1>من هم Matrix فعلًا؟</h1><p><strong>u/blueteam:</strong> راقبت بنيتهم. المفارقة أنهم مهملون في أمن أنفسهم — نفس كلمة المرور على أكثر من خدمة.</p><p><strong>u/analyst:</strong> حساب admin عندهم ظهر في تسريب قديم. لو حصلت على تجزئته، كسرها مسألة وقت.</p><p><strong>u/blueteam:</strong> وبعد الدخول، جرّب ما يُسمح لك بتشغيله بصلاحية root. هناك دائمًا إعداد خاطئ.</p>",
+        "unlocks": "forum_intel"
+      }
+    },
+    "noResults": "لا توجد نتائج مطابقة.",
+    "offline": "تعذّر الوصول إلى هذا الخادم."
+  },
+
+  "responses": {
+    "permissionDenied": "{cmd}: {arg}: Permission denied"
+  },
+
+  "objectives": [
+    { "id": "recon", "title": "اعثر على باب الدخول إلى الموقع", "done": "dir_found" },
+    { "id": "crack", "title": "احصل على بيانات الدخول", "done": "creds_cracked" },
+    { "id": "foothold", "title": "ادخل الخادم عبر SSH", "done": "ssh_ok" },
+    { "id": "privesc", "title": "ارفع صلاحياتك إلى root", "done": "root" },
+    { "id": "loot", "title": "استخرج قاعدة بيانات الضحايا", "done": "data_exfiltrated" },
+    { "id": "return", "title": "أعِد البيانات لأصحابها", "done": "mission_complete" }
+  ],
+
+  "guide": {
+    "recon": {
+      "nudge": "ابدأ دائمًا بجمع المعلومات. الاسم الذي تركه لك المصدر هو نقطة البداية.",
+      "hint": {
+        "text": "افتح المتصفح وابحث عن «matrix»، ثم ادخل موقعهم. أي موقع يخفي مسارات لا يريد لمحرّكات البحث رؤيتها — أين تُكتب هذه المسارات عادةً؟ وإن أردت طريقًا آخر، افحص المنافذ أولًا من الطرفية:",
+        "code": "nmap matrix-dump.io"
+      },
+      "solution": {
+        "text": "في المتصفح ابحث «matrix» وافتح الموقع، ثم نزّل ملف `robots.txt` منه؛ ستجد فيه `Disallow: /backups/` وهذا هو المسار المخفي.\nوالطريق البديل من الطرفية: افحص المنافذ ثم عدّد المسارات بقائمة الكلمات الجاهزة.",
+        "code": [
+          "nmap matrix-dump.io",
+          "gobuster dir -u http://matrix-dump.io -w wordlists/common.txt"
+        ],
+        "note": "سيظهر المسار `/backups` في نتائج التعداد."
+      },
+      "concept": "ملف `robots.txt` يخبر محرّكات البحث بما لا تفهرسه — لكنه بذلك يكشف للمهاجم المسارات الحسّاسة التي يريد صاحب الموقع إخفاءها. و`gobuster` يقوم بالعكس: يجرّب أسماء مسارات شائعة من قائمة كلمات ويرى أيّها يردّ. كلاهما «تعداد» — رسم خريطة سطح الهجوم قبل مهاجمته."
+    },
+    "crack": {
+      "nudge": "وجدت النسخة الاحتياطية. ما بداخلها ليس كلمة مرور مقروءة، بل بصمتها.",
+      "hint": {
+        "text": "ادخل صفحة `/backups` ونزّل `admin.bak`. الملف يحوي تجزئة (hash)، وكسرها عمل أداة واحدة:",
+        "code": "john admin.bak"
+      },
+      "solution": {
+        "text": "نزّل الملف من صفحة `/backups` بزر التنزيل، أو من الطرفية مباشرة، ثم شغّل الكاسر عليه:",
+        "code": [
+          "wget http://matrix-dump.io/backups/admin.bak",
+          "john admin.bak"
+        ],
+        "note": "ستنتهي الأداة بسطر يحمل كلمة المرور: admin / Sm4ll_W0rld"
+      },
+      "concept": "المواقع لا تخزّن كلمات المرور كنصّ صريح بل كتجزئة أحادية الاتجاه (مثل bcrypt). لا يمكن «فكّها»، لكن يمكن تخمينها: أداة مثل `john` تجرّب ملايين الاحتمالات وتُجزّئ كلًّا منها حتى تطابق التجزئة المخزّنة. كلمة مرور ضعيفة أو مُعاد استخدامها تسقط بسرعة."
+    },
+    "foothold": {
+      "nudge": "معك اسم مستخدم وكلمة مرور، ومنفذ SSH مفتوح على الخادم.",
+      "hint": {
+        "text": "ادخل بالحساب الذي كسرت كلمة مروره، وأدخل الكلمة عند الطلب:",
+        "code": "ssh admin@matrix-dump.io"
+      },
+      "solution": {
+        "text": "شغّل الأمر، وعند ظهور طلب كلمة المرور اكتب Sm4ll_W0rld:",
+        "code": "ssh admin@matrix-dump.io",
+        "note": "ستتحوّل الطرفية إلى الخادم matrix، وستراه في موجّه الأوامر."
+      },
+      "concept": "SSH هو القناة القياسية للدخول عن بُعد إلى خادم. حين تنجح المصادقة، تصبح جلستك على الجهاز البعيد كأنك جالس أمامه — لكن بصلاحيات ذلك المستخدم فقط، لا أكثر."
+    },
+    "privesc": {
+      "nudge": "دخلت، لكنك مستخدم عادي. ابحث عن إعداد خاطئ يمنحك أكثر مما ينبغي.",
+      "hint": {
+        "text": "ابدأ بسؤال النظام عمّا يُسمح لك بتشغيله بصلاحية root. إن وجدت أمرًا مألوفًا، ابحث عن اسمه في مرجع GTFOBins.",
+        "code": "sudo -l"
+      },
+      "solution": {
+        "text": "الأمر الأول يكشف أن admin يستطيع تشغيل `/usr/bin/find` بصلاحية root دون كلمة مرور. والثاني يستغلّ ذلك: يجعل `find` يشغّل صدفة بدل أن يبحث — الحيلة نفسها الموثّقة في GTFOBins.",
+        "code": ["sudo -l", "sudo find . -exec /bin/sh \\; -quit"],
+        "note": "الأمر الثاني لا يطبع شيئًا — هذا هو السلوك الصحيح. الدليل الوحيد أن الموجّه صار ينتهي بـ # بدل $. أكّدها بـ `whoami`."
+      },
+      "concept": "تصعيد الصلاحيات (privilege escalation) هو الانتقال من مستخدم محدود إلى مستخدم كامل الصلاحيات. حين يُسمح لأمر شرعي بالعمل بصلاحية root، وكان ذلك الأمر قادرًا على تشغيل أوامر أخرى (كـ `find` مع `-exec`)، يصبح جسرًا إلى صدفة بصلاحية root. لاحظ أن `sudo -l` استطلاع لا شرط: الإعداد الخاطئ موجود سواء سألت عنه أو لا، ومن يعرف الحيلة يستغلّها مباشرة. وGTFOBins مرجع يوثّق هذه الحيل لكل أداة."
+    },
+    "loot": {
+      "nudge": "أنت root الآن. الهدف كان قاعدة بيانات الضحايا، وقد قيل لك أين تقبع.",
+      "hint": {
+        "text": "القاعدة في `/root/victims.db`، وكانت محجوبة لأنك لم تكن root. اقرأها الآن:",
+        "code": "cat /root/victims.db"
+      },
+      "solution": {
+        "text": "اقرأ الملف من الطرفية، أو افتحه في مدير الملفات — كلاهما يعمل الآن بعد التصعيد:",
+        "code": "cat /root/victims.db",
+        "note": "ستُعرض قاعدة بيانات الضحايا كاملة — هذا ما جئت من أجله."
+      },
+      "concept": "في أنظمة يونكس، صلاحيات الملفات تحدّد من يقرأ ماذا. ملف يملكه root بصلاحية قراءة له وحده يبقى محجوبًا عن أي مستخدم آخر.\n\nوهنا فرق يستحق الانتباه: لم يكن لا بدّ أن تصير root لتقرأ الملف. الإعداد الخاطئ نفسه يسمح بـ `sudo find /root/victims.db -exec cat {} \\;` — فيقرأ `find` الملف بصلاحية root وأنت ما زلت admin. صدفة الـ root أقوى وأبقى، لكن قراءة واحدة كانت تكفي للغنيمة. المهاجم يأخذ أقلّ صلاحية تكفي للهدف."
+    },
+    "return": {
+      "nudge": "استخرجت البيانات. الهدف ليس الاحتفاظ بها، بل إعادتها لأصحابها.",
+      "hint": {
+        "text": "المصدر المجهول ترك سكربتًا للإعادة في `/root`. اقرأه أولًا لتفهم ما يفعله، ثم شغّله:",
+        "code": ["cat /root/restore_to_owners.sh", "sh /root/restore_to_owners.sh"]
+      },
+      "solution": {
+        "text": "السكربت يرفع القاعدة إلى قناة فريق الاستجابة التي ستبلّغ الضحايا. اقرأه ثم شغّله:",
+        "code": ["cat /root/restore_to_owners.sh", "sh /root/restore_to_owners.sh"],
+        "note": "بإرسال القاعدة تُغلق العملية."
+      },
+      "concept": "الاختراق الأخلاقي لا ينتهي عند الوصول إلى البيانات، بل عند التعامل معها بمسؤولية — إعادتها لأصحابها أو تسليمها للجهة المعنية. الفرق بين المهاجم والمدافع ليس في القدرة، بل في ما يفعله بها."
+    }
+  },
+
+  "completion": {
+    "trigger": "mission_complete",
+    "message": "تم استرجاع بيانات الضحايا وإعادتها. العملية مغلقة. — اخترق",
+    "teaser": "بعد دقائق، وصلتك رسالة من المصدر المجهول: «شكرًا. لكن Matrix لم تكن تعمل وحدها. السوق صار لي الآن.»\n\nلو قرأت سجلّ root قبل أن تغلق الجلسة، فأنت تعرف اسمه بالفعل: «الساعي». أربعون بالمئة من كل عملية بيع، ولا يلمس لوحة مفاتيح."
+  }
+}

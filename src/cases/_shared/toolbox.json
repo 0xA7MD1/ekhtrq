@@ -1,0 +1,326 @@
+{
+  "nmap": {
+    "category": "استطلاع",
+    "summary": "يفحص المنافذ المفتوحة على هدف ويحدّد الخدمات التي تستمع عليها.",
+    "description": "أول ما يفعله المهاجم بعد أن يعرف اسم الهدف: يسأل الجهاز أي أبواب لديه مفتوحة. يرسل nmap حزمًا إلى منافذ الهدف ويستنتج من ردّها إن كان المنفذ مفتوحًا أم مغلقًا أم مُرشَّحًا خلف جدار ناري. المنفذ المفتوح يعني خدمة تستمع، والخدمة تعني سطح هجوم.",
+    "usage": "nmap [options] <target>",
+    "options": [
+      { "flag": "-sV", "note": "اكشف اسم وإصدار الخدمة على كل منفذ مفتوح." },
+      { "flag": "-p <ports>", "note": "افحص منافذ محدّدة بدل الافتراضية." },
+      { "flag": "-Pn", "note": "لا تتحقّق أن الهدف حيّ أولًا — مفيد مع جدار يحجب ping." },
+      { "flag": "-A", "note": "فحص شامل: إصدارات، ونظام تشغيل، وسكربتات." }
+    ],
+    "examples": [
+      { "code": "nmap example.com", "note": "فحص سريع لأشهر ألف منفذ." },
+      { "code": "nmap -sV -p 22,80,443 example.com", "note": "افحص ثلاثة منافذ واكشف إصدار كل خدمة." }
+    ],
+    "errors": {
+      "noTarget": "Nmap: no target specified\nSee the output of nmap -h for a summary of options.",
+      "noMatch": "Starting Nmap 7.94 ( https://nmap.org )\nNote: Host seems down. If it is really up, but blocking our ping probes, try -Pn\nNmap done: 1 IP address (0 hosts up) scanned in 3.08 seconds"
+    }
+  },
+
+  "gobuster": {
+    "category": "استطلاع",
+    "summary": "يعدّد المسارات المخفيّة في موقع بتجريب أسماء من قائمة كلمات.",
+    "description": "الموقع لا يعلن عن كل صفحاته. gobuster يأخذ قائمة أسماء شائعة (admin، backup، uploads…) ويطلب كل واحدة من الخادم، ثم يستنتج من رمز الاستجابة أيّها موجود فعلًا. الرمز 200 يعني صفحة موجودة، و301 تحويلة، و401 موجودة لكنها محميّة — وكلها معلومات.",
+    "usage": "gobuster dir -u <url> -w <wordlist>",
+    "options": [
+      { "flag": "dir", "note": "وضع تعداد المسارات (هناك أوضاع أخرى مثل dns وvhost)." },
+      { "flag": "-u <url>", "note": "عنوان الهدف." },
+      { "flag": "-w <file>", "note": "ملف قائمة الكلمات المستخدمة في التجريب." },
+      { "flag": "-x <ext>", "note": "جرّب امتدادات أيضًا، مثل php,txt,bak." }
+    ],
+    "examples": [
+      {
+        "code": "gobuster dir -u http://example.com -w wordlists/common.txt",
+        "note": "جرّب كل اسم في القائمة على الموقع."
+      }
+    ],
+    "errors": {
+      "noTarget": "Error: flag '-u' is required",
+      "noMatch": "Error: error on running gobuster: unable to connect to {arg}: connection refused"
+    }
+  },
+
+  "ffuf": {
+    "category": "استطلاع",
+    "summary": "يعدّد المسارات والمعاملات بسرعة عبر استبدال كلمة FUZZ.",
+    "description": "نفس فكرة gobuster لكن أعمّ: تضع الكلمة FUZZ في أي موضع من الطلب — في المسار أو في معامل أو في ترويسة — ويستبدلها ffuf بكل سطر من قائمة الكلمات. هذا يجعله صالحًا لتعداد المسارات ولاكتشاف المعاملات المخفيّة على حدّ سواء.",
+    "usage": "ffuf -u <url/FUZZ> -w <wordlist>",
+    "options": [
+      { "flag": "-u <url>", "note": "العنوان، وفيه الكلمة FUZZ في موضع التجريب." },
+      { "flag": "-w <file>", "note": "قائمة الكلمات." },
+      { "flag": "-mc <codes>", "note": "اعرض فقط الاستجابات بهذه الرموز." }
+    ],
+    "examples": [
+      { "code": "ffuf -u http://example.com/FUZZ -w wordlists/common.txt" }
+    ],
+    "errors": {
+      "noTarget": "Encountered error(s): 1 errors occurred.\n\t* -u flag or Request file is required",
+      "noMatch": "encountered error: Get {arg}: dial tcp: lookup failed"
+    }
+  },
+
+  "dirb": {
+    "category": "استطلاع",
+    "summary": "ماسح مسارات قديم يعمل بقائمة كلمات مدمجة.",
+    "description": "سلف gobuster وffuf. أبطأ منهما وأقلّ خيارات، لكنه يأتي بقائمة كلمات جاهزة فلا يحتاج إعدادًا — ولهذا ما زال يظهر في الشروحات القديمة.",
+    "usage": "dirb <url> [wordlist]",
+    "options": [{ "flag": "-X <ext>", "note": "أضف امتدادات إلى كل كلمة." }],
+    "examples": [{ "code": "dirb http://example.com" }],
+    "errors": {
+      "noTarget": "(!) FATAL: Not enough arguments\n\nUsage: dirb <url_base> [<wordlist_file(s)>] [options]",
+      "noMatch": "(!) FATAL: Invalid URL format: {arg}"
+    }
+  },
+
+  "nikto": {
+    "category": "استطلاع",
+    "summary": "يفحص خادم ويب بحثًا عن إعدادات خاطئة وملفات معروفة الخطورة.",
+    "description": "قائمة تدقيق آلية: يجرّب آلاف المسارات والملفات المعروفة بأنها تُترك بالخطأ (نسخ احتياطية، صفحات إدارة، ترويسات ناقصة) ويبلّغ عن كل ما وجده. صاخب جدًّا في السجلّات — أي مدافع منتبه سيراه.",
+    "usage": "nikto -h <host>",
+    "options": [{ "flag": "-h <host>", "note": "الهدف." }],
+    "examples": [{ "code": "nikto -h http://example.com" }],
+    "errors": {
+      "noTarget": "+ ERROR: No host specified",
+      "noMatch": "+ ERROR: Unable to connect to {arg}"
+    }
+  },
+
+  "john": {
+    "category": "كسر التجزئة",
+    "summary": "يكسر تجزئات كلمات المرور بالتخمين ومطابقة النتيجة.",
+    "description": "التجزئة (hash) دالّة أحادية الاتجاه: تحوّل كلمة المرور إلى بصمة، ولا يمكن عكسها. لذلك لا «يفكّ» john التجزئة — بل يخمّن كلمة، ويجزّئها بنفس الخوارزمية، ويقارن. كلمة مرور ضعيفة أو مُعاد استخدامها تسقط في ثوانٍ؛ كلمة طويلة عشوائية قد تحتاج عمرًا.",
+    "usage": "john [options] <hash-file>",
+    "options": [
+      { "flag": "--wordlist=FILE", "note": "خمّن من قائمة كلمات بدل الوضع الافتراضي." },
+      { "flag": "--show", "note": "اعرض ما سبق كسره من هذا الملف." },
+      { "flag": "--format=NAME", "note": "حدّد نوع التجزئة يدويًا عند الالتباس." }
+    ],
+    "examples": [
+      { "code": "john admin.bak", "note": "اكسر التجزئة الموجودة في الملف." },
+      { "code": "john --show admin.bak", "note": "اعرض النتيجة بعد الكسر." }
+    ],
+    "errors": {
+      "noTarget": "No password hashes loaded (see FAQ)",
+      "noMatch": "No password hashes loaded (see FAQ)"
+    }
+  },
+
+  "hashcat": {
+    "category": "كسر التجزئة",
+    "summary": "كاسر تجزئات يعمل على كرت الشاشة، أسرع بكثير من المعالج.",
+    "description": "نفس مبدأ john لكنه يوزّع التخمين على آلاف أنوية كرت الشاشة، فيجرّب مليارات الاحتمالات في الثانية. يحتاج منك تحديد نوع التجزئة برقم الوضع (-m).",
+    "usage": "hashcat -m <mode> -a <attack> <hash-file> <wordlist>",
+    "options": [
+      { "flag": "-m <mode>", "note": "رقم نوع التجزئة (0 لـ MD5، 3200 لـ bcrypt)." },
+      { "flag": "-a <mode>", "note": "نمط الهجوم؛ 0 يعني قائمة كلمات." }
+    ],
+    "examples": [{ "code": "hashcat -m 3200 -a 0 hash.txt wordlists/common.txt" }],
+    "errors": {
+      "noTarget": "No hashes loaded.",
+      "noMatch": "No hashes loaded."
+    }
+  },
+
+  "hydra": {
+    "category": "كسر التجزئة",
+    "summary": "يجرّب كلمات المرور مباشرة على خدمة حيّة مثل SSH.",
+    "description": "بينما يكسر john تجزئة سرقتها، يطرق hydra الباب نفسه: يحاول تسجيل الدخول مرارًا بكلمات من قائمة. صاخب وبطيء ويُقفل الحسابات ويظهر في السجلّات فورًا — يُستخدم حين لا يوجد طريق أهدأ.",
+    "usage": "hydra -l <user> -P <wordlist> <target> <service>",
+    "options": [
+      { "flag": "-l <user>", "note": "اسم مستخدم واحد." },
+      { "flag": "-P <file>", "note": "قائمة كلمات المرور." },
+      { "flag": "-t <n>", "note": "عدد المحاولات المتوازية." }
+    ],
+    "examples": [{ "code": "hydra -l admin -P wordlists/common.txt example.com ssh" }],
+    "errors": {
+      "noTarget": "Hydra: no target specified",
+      "noMatch": "[ERROR] could not connect to target port 22"
+    }
+  },
+
+  "sqlmap": {
+    "category": "استغلال",
+    "summary": "يكتشف ثغرات حقن SQL ويستغلّها آليًا.",
+    "description": "يرسل قيمًا مُعدّلة إلى معاملات الصفحة ويراقب اختلاف الردّ: خطأ، أو تأخّر زمني، أو محتوى مختلف. من هذه الفروق يستنتج أن المدخل يصل إلى قاعدة البيانات دون تنقية، ثم يبني عليه استخراجًا كاملًا للجداول.",
+    "usage": "sqlmap -u <url> [options]",
+    "options": [
+      { "flag": "-u <url>", "note": "العنوان المستهدف مع معاملاته." },
+      { "flag": "--dbs", "note": "اسرد قواعد البيانات بعد تأكيد الثغرة." },
+      { "flag": "--batch", "note": "لا تسأل — اختر الإجابة الافتراضية دائمًا." }
+    ],
+    "examples": [{ "code": "sqlmap -u \"http://example.com/item?id=1\" --batch" }],
+    "errors": {
+      "noTarget": "[CRITICAL] no target URL specified",
+      "noMatch": "[CRITICAL] unable to connect to the target URL"
+    }
+  },
+
+  "ssh": {
+    "category": "وصول",
+    "summary": "يفتح جلسة صدفة مشفّرة على جهاز بعيد.",
+    "description": "القناة القياسية للدخول عن بُعد. بعد نجاح المصادقة تصبح طرفيتك على الجهاز البعيد كأنك جالس أمامه — لكن بصلاحيات ذلك المستخدم وحده، لا أكثر. الوصول ليس النهاية؛ غالبًا يليه تصعيد صلاحيات.",
+    "usage": "ssh [options] <user>@<host>",
+    "options": [
+      { "flag": "-p <port>", "note": "منفذ غير 22." },
+      { "flag": "-i <key>", "note": "ادخل بمفتاح خاص بدل كلمة مرور." }
+    ],
+    "examples": [{ "code": "ssh admin@example.com", "note": "سيُطلب منك كلمة المرور بعدها." }],
+    "errors": {
+      "noTarget": "usage: ssh [-p port] [-i identity_file] destination",
+      "noMatch": "ssh: connect to host {arg} port 22: Connection refused"
+    }
+  },
+
+  "scp": {
+    "category": "وصول",
+    "summary": "ينسخ ملفات بين جهازك وجهاز بعيد عبر قناة SSH.",
+    "description": "نفس مصادقة ssh، لكن بدل فتح جلسة ينقل ملفًا. الاتجاه يُقرأ من ترتيب الوسيطين: المصدر ثم الوجهة. الطريق المعتاد لسحب غنيمة من خادم إلى جهازك.",
+    "usage": "scp <source> <destination>",
+    "options": [
+      { "flag": "-r", "note": "انسخ مجلدًا كاملًا." },
+      { "flag": "-P <port>", "note": "منفذ SSH غير الافتراضي." }
+    ],
+    "examples": [{ "code": "scp admin@example.com:/root/data.db ." }],
+    "errors": {
+      "noTarget": "usage: scp [-r] source ... target",
+      "noMatch": "ssh: connect to host {arg} port 22: Connection refused"
+    }
+  },
+
+  "nc": {
+    "category": "وصول",
+    "summary": "يفتح اتصالًا خامًا على أي منفذ — إرسالًا واستقبالًا.",
+    "description": "«سكّين الجيش السويسري للشبكات»: يصل بأي منفذ ويكتب ويقرأ نصًّا خامًا. يُستخدم للتأكد أن منفذًا يستمع فعلًا، ولاستقبال صدفة عكسية من جهاز مخترَق.",
+    "usage": "nc [options] <host> <port>",
+    "options": [
+      { "flag": "-l", "note": "استمع بدل أن تتصل." },
+      { "flag": "-v", "note": "اطبع تفاصيل الاتصال." },
+      { "flag": "-p <port>", "note": "المنفذ المحلي عند الاستماع." }
+    ],
+    "examples": [
+      { "code": "nc -lvp 4444", "note": "استمع على المنفذ 4444 بانتظار اتصال." },
+      { "code": "nc example.com 22", "note": "تحقّق أن المنفذ يستمع واقرأ لافتته." }
+    ],
+    "errors": {
+      "noTarget": "usage: nc [-lv] [-p port] hostname port",
+      "noMatch": "nc: connect to {arg} failed: Connection refused"
+    }
+  },
+
+  "ping": {
+    "category": "استطلاع",
+    "summary": "يتحقّق أن الجهاز حيّ ويقيس زمن الردّ.",
+    "description": "يرسل حزمة ICMP ويحسب زمن عودتها. الصمت لا يعني أن الجهاز مطفأ — كثير من الخوادم تحجب ICMP وتبقى خدماتها تعمل، ولهذا لا يُعتمد عليه وحده في الحكم.",
+    "usage": "ping <host>",
+    "options": [{ "flag": "-c <n>", "note": "أرسل n حزمة ثم توقّف." }],
+    "examples": [{ "code": "ping -c 4 example.com" }],
+    "errors": {
+      "noTarget": "usage: ping [-c count] destination",
+      "noMatch": "ping: {arg}: Name or service not known"
+    }
+  },
+
+  "dig": {
+    "category": "استطلاع",
+    "summary": "يستعلم عن سجلّات DNS لنطاق.",
+    "description": "يحوّل الأسماء إلى عناوين ويكشف ما هو أكثر: سجلّ MX يفضح مزوّد البريد، وسجلّ TXT يكشف الخدمات المرتبطة، والنطاقات الفرعية تكشف بنية داخلية لم يُقصد إظهارها.",
+    "usage": "dig [@server] <name> [type]",
+    "options": [
+      { "flag": "+short", "note": "اطبع الجواب فقط." },
+      { "flag": "ANY", "note": "اطلب كل أنواع السجلّات." }
+    ],
+    "examples": [{ "code": "dig example.com ANY +short" }],
+    "errors": {
+      "noTarget": ";; Usage: dig [@server] name [type]",
+      "noMatch": ";; connection timed out; no servers could be reached"
+    }
+  },
+
+  "wget": {
+    "category": "نقل",
+    "summary": "ينزّل ملفًا من عنوان ويحفظه على القرص.",
+    "description": "يطلب العنوان ويكتب الاستجابة في ملف داخل مجلدك الحالي. هذا هو الفرق بينه وبين curl: wget يحفظ افتراضيًا، وcurl يطبع.",
+    "usage": "wget [options] <url>",
+    "options": [
+      { "flag": "-O <file>", "note": "احفظ باسم محدّد." },
+      { "flag": "-q", "note": "بلا مخرجات تقدّم." }
+    ],
+    "examples": [{ "code": "wget http://example.com/backups/admin.bak" }],
+    "errors": {
+      "noTarget": "wget: missing URL\nUsage: wget [OPTION]... [URL]...",
+      "noMatch": "--  {arg}\nHTTP request sent, awaiting response... 404 Not Found\nERROR 404: Not Found."
+    }
+  },
+
+  "curl": {
+    "category": "نقل",
+    "summary": "يطلب عنوانًا ويطبع الاستجابة في الطرفية.",
+    "description": "أداة الفحص السريع للويب: يريك جسم الاستجابة كما هو، ويسمح بضبط الطريقة والترويسات والبيانات المُرسلة — فهو الطريق لاختبار واجهة برمجية أو ثغرة يدويًا قبل أتمتتها.",
+    "usage": "curl [options] <url>",
+    "options": [
+      { "flag": "-I", "note": "الترويسات فقط." },
+      { "flag": "-X <method>", "note": "غيّر طريقة الطلب (POST، PUT…)." },
+      { "flag": "-d <data>", "note": "أرسل بيانات في جسم الطلب." }
+    ],
+    "examples": [{ "code": "curl http://example.com/robots.txt" }],
+    "errors": {
+      "noTarget": "curl: try 'curl --help' for more information",
+      "noMatch": "curl: (22) The requested URL returned error: 404"
+    }
+  },
+
+  "sudo": {
+    "category": "تصعيد صلاحيات",
+    "summary": "ينفّذ أمرًا بصلاحيات مستخدم آخر، غالبًا root.",
+    "description": "الإعداد يحدّد ما يُسمح لك بتشغيله وبأي صلاحية. الخطر ليس في sudo نفسه بل في إعداده: أمر شرعي واحد يُسمح بتشغيله كـ root، وقادر على تشغيل أوامر أخرى، يصبح جسرًا إلى صدفة root كاملة. ابدأ دائمًا بـ sudo -l لترى ما لديك.",
+    "usage": "sudo [-l] [-u user] <command>",
+    "options": [
+      { "flag": "-l", "note": "اسرد ما يُسمح لك بتشغيله على هذا الجهاز." },
+      { "flag": "-u <user>", "note": "نفّذ كمستخدم غير root." }
+    ],
+    "examples": [
+      { "code": "sudo -l", "note": "الخطوة الأولى دائمًا بعد الدخول." },
+      { "code": "sudo find . -exec /bin/sh \\; -quit", "note": "مثال على استغلال أمر مسموح." }
+    ],
+    "errors": {
+      "noTarget": "usage: sudo -l | sudo [-u user] command",
+      "noMatch": "Sorry, user {user} may not run that command on {host}."
+    }
+  },
+
+  "su": {
+    "category": "تصعيد صلاحيات",
+    "summary": "ينتقل إلى مستخدم آخر بكلمة مروره.",
+    "description": "طريق مباشر إلى حساب آخر — لكنه يتطلّب كلمة مرور ذلك الحساب، لا كلمتك. مفيد حين تكسر كلمة مرور root، وعديم الفائدة بدونها.",
+    "usage": "su [user]",
+    "options": [{ "flag": "-", "note": "ابدأ صدفة تسجيل دخول كاملة ببيئة المستخدم." }],
+    "examples": [{ "code": "su - root" }],
+    "errors": {
+      "noTarget": "su: Authentication failure",
+      "noMatch": "su: Authentication failure"
+    }
+  },
+
+  "find": {
+    "category": "تصعيد صلاحيات",
+    "summary": "يبحث عن ملفات بالاسم أو الصلاحية أو المالك، وينفّذ أمرًا عليها.",
+    "description": "أداة بحث عادية في الاستخدام اليومي، لكن خيار -exec يجعلها قادرة على تشغيل أي أمر. لهذا يتحوّل find المسموح تشغيله بصلاحية root إلى تصعيد صلاحيات كامل — وهذا بالضبط نوع الحيلة الذي يوثّقه مرجع GTFOBins.",
+    "usage": "find <path> [expression]",
+    "options": [
+      { "flag": "-name <pattern>", "note": "طابق الاسم." },
+      { "flag": "-perm <mode>", "note": "طابق الصلاحيات — مفيد لصيد ملفات SUID." },
+      { "flag": "-exec <cmd> \\;", "note": "نفّذ أمرًا على كل نتيجة." }
+    ],
+    "examples": [
+      { "code": "find / -name '*.db' 2>/dev/null", "note": "ابحث عن قواعد البيانات وتجاهل أخطاء الصلاحيات." },
+      { "code": "find / -perm -4000 2>/dev/null", "note": "اسرد ملفات SUID — طريق شائع للتصعيد." }
+    ],
+    "errors": {
+      "noTarget": "find: missing argument",
+      "noMatch": "find: '{arg}': No such file or directory"
+    }
+  }
+}

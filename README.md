@@ -1,36 +1,53 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# اخترق · EKHTRQ
 
-## Getting Started
+منصّة عربية لقضايا اختراق سردية. كل قضية سطح مكتب محاكى — طرفية، متصفح، مدير
+ملفات، دليل — يستطلع فيه اللاعب ويستغلّ ويلتقط العلَم. لا دروس مصوّرة.
 
-First, run the development server:
+## التشغيل
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+pnpm install
+cp .env.example .env.local
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+ثم افتح <http://localhost:3000>. كل التكاملات في `.env.example` اختيارية — كلٌّ
+منها يبقى خاملًا حتى تُضاف مفاتيحه، والصفحة الرئيسية والقضايا تعمل بدونها.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## كيف تعمل القضية
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+المحاكاة كلها في المتصفح. بمجرّد أن يُركَّب سطح المكتب لا يمسّ أي طلب خادمًا،
+ولذلك تبدو الطرفية فورية ولا تكلّف القضية شيئًا في التشغيل.
 
-## Learn More
+قضية واحدة = ملف JSON واحد. المُحمِّل يكتشف أي `.json` في `src/cases/` ويعطيه
+مسارًا على `/cases/[slug]` تلقائيًا — إضافة قضية ليست تغييرًا في الكود.
 
-To learn more about Next.js, take a look at the following resources:
+| المسار | ما فيه |
+| --- | --- |
+| [`src/cases/`](src/cases/) | القضايا. ملف لكل قضية، و`_drafts/` خارج المُحمِّل، و`_shared/toolbox.json` أدلّة الأدوات |
+| [`src/lib/labs/schema.ts`](src/lib/labs/schema.ts) | عقد المانيفست والتحقّق منه — يفشل البناء عند قضية غير قابلة للحلّ |
+| [`src/lib/sim/engine.ts`](src/lib/sim/engine.ts) | المحاكي: `(مانيفست، جلسة، إدخال) → (سطور، جلسة تالية)` |
+| [`src/components/desktop/`](src/components/desktop/) | سطح المكتب: النوافذ، الطرفية، المتصفح، الملفات، الدليل |
+| [`src/store/`](src/store/) | حالة الجلسة والنوافذ والواجهة (Zustand) |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+الأعلام هي الحالة الوحيدة: كل هدف يكتمل بعلَم يمنحه شيء فعلًا، والدليل هو المكان
+الوحيد الذي يكشف الخطوة التالية. التفاصيل في
+[`src/cases/README.md`](src/cases/README.md).
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## الفحوص
 
-## Deploy on Vercel
+```bash
+npx tsc --noEmit
+pnpm lint
+pnpm build     # يتحقّق من كل مانيفست أثناء البناء
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## الوثائق
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- [`docs/CASE-PLANS.md`](docs/CASE-PLANS.md) — خطط القضايا ٠٣–٠٧ (مسودّات تصميم، غير منشورة)
+- [`docs/PRICING.md`](docs/PRICING.md) — التسعير وتحقيق الدخل (مقترح، لم يُقرَّر)
+
+## المنظومة
+
+Next.js 16 · React 19 · Tailwind 4 · Zustand · Drizzle + Postgres · Clerk ·
+Polar · PostHog · Sentry
